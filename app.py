@@ -10,11 +10,11 @@ app = Flask(__name__)
 
 # 加载sklearn模型
 model = None
-if os.path.exists('model.pkl'):
-    model = joblib.load('model.pkl')
-    print("Model loaded from model.pkl")
+if os.path.exists('model.pth'):
+    model = joblib.load('model.pth')
+    print("Model loaded from model.pth")
 else:
-    print("Warning: model.pkl not found")
+    print("Warning: model.pth not found")
 
 def center_image(img_array):
     """将数字居中对齐"""
