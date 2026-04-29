@@ -1,5 +1,6 @@
 import numpy as np
-import joblib
+import torch
+import torch.nn as nn
 from PIL import Image
 import base64
 import io
@@ -8,11 +9,38 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# 加载sklearn模型
-model = None
+# 定义CNN模型
+class CNN(nn.Module):
+    def __init__(self):
+        super(CNN, self).__init__()
+        self.conv_layers = nn.Sequential(
+            nn.Conv2d(1, 32, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.ReLU()
+        )
+        self.fc_layers = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(64 * 7 * 7, 64),
+            nn.ReLU(),
+            nn.Linear(64, 10)
+        )
+    
+    def forward(self, x):
+        x = self.conv_layers(x)
+        x = self.fc_layers(x)
+        return x
+
+# 加载PyTorch模型
+model = CNN()
 if os.path.exists('model.pth'):
-    model = joblib.load('model.pth')
-    print("Model loaded from model.pth")
+    model.load_state_dict(torch.load('model.pth', map_location='cpu'))
+    model.eval()
+    print("Model loaded from model.pth (PyTorch format)")
 else:
     print("Warning: model.pth not found")
 
@@ -57,16 +85,19 @@ def predict_digit(image):
         img_array = img_array / 255.0
         img_array = center_image(img_array)
         
-        img_flat = img_array.flatten().reshape(1, -1)
-        prediction = model.predict(img_flat)[0]
-        probabilities = model.predict_proba(img_flat)[0]
+        img_tensor = torch.tensor(img_array, dtype=torch.float32).view(1, 1, 28, 28)
+        
+        with torch.no_grad():
+            outputs = model(img_tensor)
+            probabilities = torch.softmax(outputs, dim=1).numpy()[0]
+            prediction = int(torch.argmax(outputs).item())
         
         top3_indices = np.argsort(probabilities)[::-1][:3]
         top3_results = [(int(i), float(probabilities[i])) for i in top3_indices]
         all_probabilities = [float(probabilities[i]) for i in range(10)]
         
         return {
-            'prediction': int(prediction),
+            'prediction': prediction,
             'confidence': float(probabilities[prediction]),
             'top3': top3_results,
             'all_probabilities': all_probabilities

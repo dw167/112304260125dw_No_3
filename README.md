@@ -1,6 +1,6 @@
 # 手写数字识别 Web 应用
 
-基于 Flask + scikit-learn 的手写数字识别 Web 应用，支持实时手写输入和预测。
+基于 Flask + PyTorch 的手写数字识别 Web 应用，支持实时手写输入和预测。
 
 ## 🚀 功能特性
 
@@ -13,7 +13,7 @@
 ## 🛠️ 技术栈
 
 - **框架**: Flask 2.3
-- **模型**: scikit-learn MLPClassifier
+- **模型**: PyTorch CNN
 - **前端**: HTML5 Canvas + JavaScript
 
 ## 📁 项目结构
@@ -21,7 +21,7 @@
 ```
 project/
 ├── app.py              # Web 应用入口（单文件，包含HTML模板）
-├── model.pkl           # 训练好的模型权重（准确率≥0.98）
+├── model.pth           # 训练好的模型权重（PyTorch格式）
 ├── requirements.txt    # 依赖列表
 └── README.md           # 项目说明
 ```
@@ -57,14 +57,14 @@ python app.py
 1. 创建新的 Space，选择 **Gradio** 或 **Streamlit**
 2. 上传以下文件：
    - `app.py`
-   - `model.pkl`
+   - `model.pth`
    - `requirements.txt`
 3. 等待部署完成，获取公网链接
 
 ## 📊 模型信息
 
-- 模型类型: MLPClassifier
-- 隐藏层: (512, 256, 128, 64)
+- 模型类型: PyTorch CNN
+- 架构: Conv(32) → Conv(64) → Conv(64) → FC(64) → FC(10)
 - 训练准确率: ≥0.98
 - 数据集: MNIST
 
